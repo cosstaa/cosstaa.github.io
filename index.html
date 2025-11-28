@@ -7,52 +7,54 @@
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1e40af">
+    <meta name="theme-color" content="#0f172a">
     <style>
         :root {
-            --primary: #1e40af;
-            --secondary: #3b82f6;
-            --danger: #ef4444;
-            --success: #10b981;
-            --warning: #f59e0b;
+            --primary: #0f172a;
+            --secondary: #22c55e;
+            --danger: #f97316;
+            --success: #22c55e;
+            --warning: #facc15;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(circle at top, #1d2433 0%, #020617 55%, #000 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #e5e7eb;
         }
-        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
-        .summary { background: var(--warning); padding: 16px 20px; text-align: center; }
-        .summary h2 { font-size: 2em; margin-bottom: 5px; }
-        .date-filters { background: #f8fafc; padding: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .date-picker { flex: 1; min-width: 140px; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
-        .btn-danger { background: var(--danger); }
-        .btn-success { background: var(--success); }
-        .list { max-height: 350px; overflow-y: auto; }
-        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #e5e7eb; }
+        .container { max-width: 500px; margin: 0 auto; background: #020617; border-radius: 24px; border:1px solid #1e293b; box-shadow: 0 30px 80px rgba(15,23,42,0.8); overflow: hidden; }
+        .header { background: linear-gradient(135deg,#0f172a,#1e293b); color: white; padding: 20px; text-align: center; }
+        .summary { background: #0b1120; padding: 16px 20px; text-align: center; border-bottom:1px solid #1f2937; }
+        .summary h2 { font-size: 2em; margin-bottom: 5px; color:#f97316; }
+        .date-filters { background: #020617; padding: 16px 20px; display: flex; gap: 10px; flex-wrap: wrap; border-bottom:1px solid #1f2937; }
+        .date-picker { flex: 1; min-width: 140px; background:#020617; color:#e5e7eb; border-radius:10px; border:1px solid #1f2937; padding:8px; }
+        .btn { background: var(--secondary); color: #020617; border: none; padding: 10px 20px; border-radius: 999px; font-weight: 600; cursor: pointer; transition: all 0.15s; font-size:0.95rem; }
+        .btn:hover { transform: translateY(-1px) scale(1.01); box-shadow: 0 8px 20px rgba(34,197,94,0.35); }
+        .btn-danger { background: var(--danger); color:#020617; }
+        .btn-success { background: #22c55e; color:#020617; }
+        .list { max-height: 350px; overflow-y: auto; background:#020617; }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #1f2937; }
         .expense-info { flex: 1; }
-        .expense-category { font-weight: 600; color: var(--primary); }
-        .expense-desc { color: #6b7280; font-size: 0.9em; }
-        .expense-amount { font-size: 1.2em; font-weight: 700; color: var(--danger); }
-        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #374151; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
-        .tabs button { border:none; padding:12px; font-weight:600; cursor:pointer; }
+        .expense-category { font-weight: 600; color: #e5e7eb; }
+        .expense-desc { color: #9ca3af; font-size: 0.85em; margin-top:2px; }
+        .expense-amount { font-size: 1.1em; font-weight: 700; color: #f97316; }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,23,42,0.85); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: #020617; padding: 26px; border-radius: 20px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; border:1px solid #1f2937; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #e5e7eb; font-size:0.9rem; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #1f2937; border-radius: 10px; font-size: 15px; background:#020617; color:#e5e7eb; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #22c55e; }
+        .tabs button { border:none; padding:10px; font-weight:600; cursor:pointer; font-size:0.9rem; }
+        #charts-area { background:#020617; border-bottom:1px solid #1f2937; }
         @media (max-width: 480px) { .date-filters { flex-direction: column; } }
 
-        /* Splash (tela inicial) */
+        /* Splash (tela inicial elaborada) */
         #splash {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at top, #1e293b 0%, #020617 60%, #000 100%);
+            background: radial-gradient(circle at top, #1f2937 0%, #020617 55%, #000 100%);
             color: #e5e7eb;
             display: flex;
             align-items: center;
@@ -60,39 +62,100 @@
             z-index: 2000;
         }
         #splash-inner {
-            max-width: 320px;
-            text-align: center;
-            padding: 32px 24px;
-            border-radius: 24px;
-            background: rgba(15,23,42,0.96);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            max-width: 360px;
+            width: 90%;
+            background: rgba(15,23,42,0.97);
+            border-radius: 28px;
+            padding: 26px 22px 22px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.85);
+            border:1px solid #1f2937;
+        }
+        #splash-chip-row {
+            display:flex;
+            justify-content: space-between;
+            gap:10px;
+            margin-bottom:12px;
+            font-size:0.7rem;
+            text-transform:uppercase;
+            letter-spacing:.09em;
+        }
+        .splash-chip {
+            padding:4px 10px;
+            border-radius:999px;
+            border:1px solid #334155;
+            color:#9ca3af;
+            display:inline-flex;
+            align-items:center;
+            gap:4px;
         }
         #splash-title {
             font-size: 1.6rem;
-            margin-bottom: 8px;
+            font-weight:700;
+            margin-bottom:6px;
         }
         #splash-subtitle {
             font-size: 0.95rem;
             color: #9ca3af;
-            margin-bottom: 18px;
+            margin-bottom:16px;
         }
-        #splash-badge {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: #a5b4fc;
-            margin-bottom: 12px;
+        #splash-grid {
+            display:grid;
+            grid-template-columns: repeat(2, minmax(0,1fr));
+            gap:10px;
+            margin-bottom:14px;
         }
+        .splash-card {
+            background:#020617;
+            border-radius:16px;
+            padding:10px 10px 9px;
+            border:1px solid #1f2937;
+            font-size:0.8rem;
+        }
+        .splash-card-title {
+            color:#9ca3af;
+            font-size:0.7rem;
+            margin-bottom:4px;
+        }
+        .splash-card-value {
+            font-weight:600;
+            font-size:0.9rem;
+        }
+        .splash-illustration {
+            margin-bottom:12px;
+            display:flex;
+            justify-content:center;
+        }
+        .splash-bars {
+            width:150px;
+            height:60px;
+            border-radius:16px;
+            background: radial-gradient(circle at top,#0b1120 0%,#020617 70%);
+            border:1px solid #1f2937;
+            display:flex;
+            align-items:flex-end;
+            justify-content:space-around;
+            padding:8px 10px;
+        }
+        .splash-bar {
+            width:16px;
+            border-radius:999px;
+            background:linear-gradient(to top,#22c55e,#4ade80);
+        }
+        .splash-bar:nth-child(2) { height:36px; background:linear-gradient(to top,#f97316,#fdba74); }
+        .splash-bar:nth-child(1) { height:22px; opacity:0.85; }
+        .splash-bar:nth-child(3) { height:46px; }
         #splash-button {
-            margin-top: 16px;
+            margin-top:4px;
             width: 100%;
             border-radius: 999px;
             background: #22c55e;
+            color:#022c22;
         }
         #splash-hint {
-            margin-top: 10px;
+            margin-top:8px;
             font-size: 0.75rem;
             color: #9ca3af;
+            text-align:center;
         }
         .hidden-splash {
             opacity: 0;
@@ -106,14 +169,37 @@
     <!-- Tela inicial (splash) -->
     <div id="splash">
         <div id="splash-inner">
-            <div id="splash-badge">Controle financeiro</div>
-            <div id="splash-title">Bem-vindo ao Gastos Tracker</div>
-            <div id="splash-subtitle">
-                Acompanhe salário, parcelas e gastos por categoria em um só lugar.
+            <div id="splash-chip-row">
+                <div class="splash-chip">💳 Parcelas automáticas</div>
+                <div class="splash-chip">📊 Gráficos em tempo real</div>
             </div>
-            <button class="btn" id="splash-button" onclick="enterApp()">Começar</button>
+            <div id="splash-title">Gastos Tracker</div>
+            <div id="splash-subtitle">
+                Veja salário, saldos e despesas por categoria em segundos. Controle tudo no seu iPhone, mesmo offline.
+            </div>
+
+            <div id="splash-grid">
+                <div class="splash-card">
+                    <div class="splash-card-title">Modo salário</div>
+                    <div class="splash-card-value">Saldo atual simulado</div>
+                </div>
+                <div class="splash-card">
+                    <div class="splash-card-title">Parcelas</div>
+                    <div class="splash-card-value">Distribuídas mês a mês</div>
+                </div>
+            </div>
+
+            <div class="splash-illustration">
+                <div class="splash-bars">
+                    <div class="splash-bar"></div>
+                    <div class="splash-bar"></div>
+                    <div class="splash-bar"></div>
+                </div>
+            </div>
+
+            <button class="btn" id="splash-button" onclick="enterApp()">Começar agora</button>
             <div id="splash-hint">
-                Dica: adicione este app à tela inicial para usar como aplicativo.
+                Dica: use o botão compartilhar do Safari &gt; “Adicionar à Tela de Início” para usar como app.
             </div>
         </div>
     </div>
@@ -125,26 +211,27 @@
         </div>
 
         <div class="summary">
-            <div>Período: <span id="period-display">Últimos 30 dias</span></div>
+            <div style="font-size:0.8rem; color:#9ca3af;">Período ativo</div>
+            <div style="font-size:0.9rem; margin-bottom:4px;"><span id="period-display">Últimos 30 dias</span></div>
             <h2 id="total-amount">R$ 0,00</h2>
-            <div id="transaction-count">0 transações</div>
-            <div id="salary-info" style="margin-top:6px; font-size:0.9em;"></div>
+            <div id="transaction-count" style="font-size:0.9rem; color:#e5e7eb;">0 transações</div>
+            <div id="salary-info" style="margin-top:6px; font-size:0.85rem; color:#e5e7eb;"></div>
             <div id="balance-info" style="margin-top:4px; font-weight:600;"></div>
         </div>
 
         <div class="date-filters">
             <input type="date" id="start-date" class="date-picker">
             <input type="date" id="end-date" class="date-picker">
-            <button class="btn" onclick="filterExpenses()">Filtrar</button>
-            <button class="btn btn-success" onclick="exportData()">Exportar</button>
+            <button class="btn" style="flex:0 0 auto;" onclick="filterExpenses()">Filtrar</button>
+            <button class="btn btn-success" style="flex:0 0 auto;" onclick="exportData()">Exportar</button>
         </div>
 
-        <div class="tabs" style="display:flex; border-bottom:1px solid #e5e7eb;">
-            <button id="tab-despesas" class="btn-tab" onclick="selectTab('despesas')" style="flex:1; border-radius:0; background:#f3f4f6; color:#111827;">Despesas</button>
-            <button id="tab-salarios" class="btn-tab" onclick="selectTab('salarios')" style="flex:1; border-radius:0; background:#ffffff; color:#6b7280; border-left:1px solid #e5e7eb;">Salário</button>
+        <div class="tabs" style="display:flex; border-bottom:1px solid #1f2937; background:#020617;">
+            <button id="tab-despesas" class="btn-tab" onclick="selectTab('despesas')" style="flex:1; border-radius:0; background:#0b1120; color:#e5e7eb;">Despesas</button>
+            <button id="tab-salarios" class="btn-tab" onclick="selectTab('salarios')" style="flex:1; border-radius:0; background:#020617; color:#6b7280; border-left:1px solid #1f2937;">Salário</button>
         </div>
 
-        <div id="charts-area" style="padding:16px; background:#f9fafb;">
+        <div id="charts-area" style="padding:16px 14px 18px; background:#020617;">
             <canvas id="categoryChart" style="max-height:220px; margin-bottom:20px;"></canvas>
             <canvas id="monthlyChart" style="max-height:220px;"></canvas>
         </div>
@@ -157,16 +244,16 @@
             <div style="padding: 40px; text-align: center; color: #6b7280;">Nenhum salário cadastrado<br>Adicione seu salário!</div>
         </div>
 
-        <div style="padding: 20px; text-align: center; display:flex; gap:10px;">
+        <div style="padding: 16px; text-align: center; display:flex; gap:10px; background:#020617; border-top:1px solid #1f2937;">
             <button class="btn" style="flex:1;" onclick="showAddModal()">➕ Adicionar Despesa</button>
-            <button class="btn btn-success" style="flex:1;" onclick="showSalaryModal()">💼 Adicionar Salário</button>
+            <button class="btn btn-success" style="flex:1;" onclick="showSalaryModal()">💼 Salário</button>
         </div>
     </div>
 
     <!-- Modal Despesa -->
     <div id="add-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2>📝 Nova Despesa</h2>
+            <h2 style="margin-bottom:12px;">📝 Nova Despesa</h2>
             <div class="form-group">
                 <label>Data</label>
                 <input type="date" id="expense-date" required>
@@ -216,8 +303,8 @@
                     <option value="Boleto">📄 Boleto</option>
                 </select>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" style="flex: 1;" onclick="hideAddModal()">Cancelar</button>
+            <div style="display: flex; gap: 10px; margin-top:4px;">
+                <button class="btn" style="flex: 1; background:#111827; color:#e5e7eb;" onclick="hideAddModal()">Cancelar</button>
                 <button class="btn btn-success" style="flex: 1;" onclick="saveExpense()">Salvar</button>
             </div>
         </div>
@@ -226,7 +313,7 @@
     <!-- Modal Salário -->
     <div id="salary-modal" class="modal" style="display: none;">
         <div class="modal-content">
-            <h2>💼 Salário Base Mensal</h2>
+            <h2 style="margin-bottom:12px;">💼 Salário Base Mensal</h2>
             <div class="form-group">
                 <label>Descrição</label>
                 <input type="text" id="salary-desc" placeholder="Salário empresa X">
@@ -235,8 +322,8 @@
                 <label>Valor (R$)</label>
                 <input type="number" id="salary-amount" step="0.01" placeholder="0,00" required>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" style="flex: 1;" onclick="hideSalaryModal()">Cancelar</button>
+            <div style="display: flex; gap: 10px; margin-top:4px;">
+                <button class="btn" style="flex: 1; background:#111827; color:#e5e7eb;" onclick="hideSalaryModal()">Cancelar</button>
                 <button class="btn btn-success" style="flex: 1;" onclick="saveSalary()">Salvar</button>
             </div>
         </div>
@@ -275,18 +362,18 @@
             const chartsArea = document.getElementById('charts-area');
 
             if (tab === 'despesas') {
-                tabDespesas.style.background = '#f3f4f6';
-                tabDespesas.style.color = '#111827';
-                tabSalarios.style.background = '#ffffff';
+                tabDespesas.style.background = '#0b1120';
+                tabDespesas.style.color = '#e5e7eb';
+                tabSalarios.style.background = '#020617';
                 tabSalarios.style.color = '#6b7280';
                 expensesList.style.display = 'block';
                 salariesList.style.display = 'none';
                 chartsArea.style.display = 'block';
             } else {
-                tabDespesas.style.background = '#ffffff';
+                tabDespesas.style.background = '#020617';
                 tabDespesas.style.color = '#6b7280';
-                tabSalarios.style.background = '#f3f4f6';
-                tabSalarios.style.color = '#111827';
+                tabSalarios.style.background = '#0b1120';
+                tabSalarios.style.color = '#e5e7eb';
                 expensesList.style.display = 'none';
                 salariesList.style.display = 'block';
                 chartsArea.style.display = 'none';
@@ -309,8 +396,8 @@
                         </div>
                         <div style="text-align: right;">
                             <div class="expense-amount">R$ ${exp.amount.toFixed(2).replace('.', ',')}</div>
-                            <div style="font-size: 0.8em; color: #6b7280;">${exp.paymentMethod}</div>
-                            <div style="font-size: 0.7em; color: #9ca3af;">${new Date(exp.date).toLocaleDateString('pt-BR')}</div>
+                            <div style="font-size: 0.8em; color: #9ca3af;">${exp.paymentMethod}</div>
+                            <div style="font-size: 0.7em; color: #6b7280;">${new Date(exp.date).toLocaleDateString('pt-BR')}</div>
                             <button onclick="deleteExpense(${exp.id})" style="margin-top:6px; padding:4px 8px; font-size:11px; border-radius:6px; border:none; background:#ef4444; color:white;">Excluir</button>
                         </div>
                     </div>
@@ -328,7 +415,7 @@
                 const saldo = baseSalary - total;
                 salaryInfoEl.textContent = `Salário do período: R$ ${baseSalary.toFixed(2).replace('.', ',')}`;
                 balanceInfoEl.textContent = `Saldo disponível: R$ ${saldo.toFixed(2).replace('.', ',')}`;
-                balanceInfoEl.style.color = saldo >= 0 ? '#16a34a' : '#ef4444';
+                balanceInfoEl.style.color = saldo >= 0 ? '#22c55e' : '#f97316';
             } else {
                 salaryInfoEl.textContent = 'Cadastre seu salário para ver o saldo.';
                 balanceInfoEl.textContent = '';
@@ -350,7 +437,7 @@
                         <div class="expense-desc">Salário base mensal</div>
                     </div>
                     <div style="text-align: right;">
-                        <div class="expense-amount" style="color:#10b981;">R$ ${baseSalary.toFixed(2).replace('.', ',')}</div>
+                        <div class="expense-amount" style="color:#22c55e;">R$ ${baseSalary.toFixed(2).replace('.', ',')}</div>
                     </div>
                 </div>
             `;
@@ -506,11 +593,11 @@
                         labels: catLabels,
                         datasets: [{
                             data: catValues,
-                            backgroundColor: ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#22c55e','#f97316','#0ea5e9','#a855f7','#eab308','#6b7280']
+                            backgroundColor: ['#f97316','#22c55e','#3b82f6','#eab308','#8b5cf6','#ec4899','#22c55e','#f97316','#0ea5e9','#a855f7','#eab308','#6b7280']
                         }]
                     },
                     options: {
-                        plugins: { legend: { position: 'bottom' } }
+                        plugins: { legend: { position: 'bottom', labels:{color:'#e5e7eb'} } }
                     }
                 });
             }
@@ -528,8 +615,10 @@
                     },
                     options: {
                         scales: {
-                            y: { beginAtZero: true }
-                        }
+                            x: { ticks:{color:'#9ca3af'} , grid:{color:'#111827'} },
+                            y: { beginAtZero: true, ticks:{color:'#9ca3af'}, grid:{color:'#111827'} }
+                        },
+                        plugins:{ legend:{labels:{color:'#e5e7eb'}} }
                     }
                 });
             }
