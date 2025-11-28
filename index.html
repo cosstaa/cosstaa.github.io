@@ -341,6 +341,7 @@
             <input type="date" id="start-date" class="date-picker">
             <input type="date" id="end-date" class="date-picker">
             <button class="btn" style="flex:0 0 auto;" onclick="filterExpenses()">Filtrar</button>
+            <button class="btn btn-outline" style="flex:0 0 auto;" onclick="resetDateFilter()">Redefinir datas</button>
             <button class="btn btn-outline" style="flex:0 0 auto;" onclick="exportData()">Exportar</button>
         </div>
 
@@ -350,8 +351,8 @@
         </div>
 
         <div id="charts-area" style="padding:16px 14px 18px; background:#020617;">
-            <canvas id="categoryChart" style="max-height:220px; margin-bottom:20px;"></canvas>
-            <canvas id="monthlyChart" style="max-height:220px;"></canvas>
+            anvas id="categoryChart" style="max-height:220px; margin-bottom:20px;"></canvas>
+            anvas id="monthlyChart" style="max-height:220px;"></canvas>
         </div>
 
         <div class="list" id="expenses-list">
@@ -563,7 +564,6 @@
             totalEl.textContent = brlFormatter.format(total);
             countEl.textContent = `${filteredExpenses.length} transações`;
 
-
             const salaryInfoEl = document.getElementById('salary-info');
             const balanceInfoEl = document.getElementById('balance-info');
 
@@ -612,6 +612,23 @@
                 `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`;
 
             renderExpenses(filtered);
+        }
+
+        function resetDateFilter() {
+            const now = new Date();
+            const start = new Date();
+            start.setDate(now.getDate() - 30);
+
+            startDate = start;
+            endDate = now;
+
+            document.getElementById('start-date').value = start.toISOString().split('T')[0];
+            document.getElementById('end-date').value = now.toISOString().split('T')[0];
+
+            document.getElementById('period-display').textContent =
+                `${start.toLocaleDateString('pt-BR')} - ${now.toLocaleDateString('pt-BR')}`;
+
+            filterExpenses();
         }
 
         function showAddModal() {
@@ -832,4 +849,3 @@
     </script>
 </body>
 </html>
-
