@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gastos Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e40af">
+    <style>
+       :root {
+    --primary: #065f46;
+    --secondary: #10b981;
+    --danger: #f97316;
+    --success: #22c55e;
+    --warning: #facc15;
+}
+body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top, #111827 0%, #020617 60%, #000000 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+        }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
+        .summary { background: var(--warning); padding: 16px 20px; text-align: center; }
+        .summary h2 { font-size: 2em; margin-bottom: 5px; }
+        .date-filters { background: #f8fafc; padding: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .date-picker { flex: 1; min-width: 140px; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .list { max-height: 350px; overflow-y: auto; }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid #e5e7eb; }
+        .expense-info { flex: 1; }
+        .expense-category { font-weight: 600; color: var(--primary); }
+        .expense-desc { color: #6b7280; font-size: 0.9em; }
+        .expense-amount { font-size: 1.2em; font-weight: 700; color: var(--danger); }
+        .modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #374151; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 16px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); }
+        .tabs button { border:none; padding:12px; font-weight:600; cursor:pointer; }
+        @media (max-width: 480px) { .date-filters { flex-direction: column; } }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Gastos Tracker V3</h1>
+        </div>
+
+        <div class="summary">
+            <div>Período: <span id="period-display">Últimos 30 dias</span></div>
+            <h2 id="total-amount">R$ 0,00</h2>
+            <div id="transaction-count">0 transações</div>
+            <div id="salary-info" style="margin-top:6px; font-size:0.9em;"></div>
+            <div id="balance-info" style="margin-top:4px; font-weight:600;"></div>
+        </div>
+
+        <div class="date-filters">
+            <input type="date" id="start-date" class="date-picker">
+            <input type="date" id="end-date" class="date-picker">
+            <button class="btn" onclick="filterExpenses()">Filtrar</button>
+            <button class="btn btn-success" onclick="exportData()">Exportar</button>
+        </div>
+
+        <div class="tabs" style="display:flex; border-bottom:1px solid #e5e7eb;">
+            <button id="tab-despesas" class="btn-tab" onclick="selectTab('despesas')" style="flex:1; border-radius:0; background:#f3f4f6; color:#111827;">Despesas</button>
+            <button id="tab-salarios" class="btn-tab" onclick="selectTab('salarios')" style="flex:1; border-radius:0; background:#ffffff; color:#6b7280; border-left:1px solid #e5e7eb;">Salário</button>
+        </div>
+
+        <div id="charts-area" style="padding:16px; background:#f9fafb;">
+            <canvas id="categoryChart" style="max-height:220px; margin-bottom:20px;"></canvas>
+            <canvas id="monthlyChart" style="max-height:220px;"></canvas>
+        </div>
+
+        <div class="list" id="expenses-list">
+            <div style="padding: 40px; text-align: center; color: #6b7280;">Nenhuma despesa encontrada<br>Adicione a primeira despesa!</div>
+        </div>
+
+        <div class="list" id="salaries-list" style="display:none;">
+            <div style="padding: 40px; text-align: center; color: #6b7280;">Nenhum salário cadastrado<br>Adicione seu salário!</div>
+        </div>
+
+        <div style="padding: 20px; text-align: center; display:flex; gap:10px;">
+            <button class="btn" style="flex:1;" onclick="showAddModal()">➕ Adicionar Despesa</button>
+            <button class="btn btn-success" style="flex:1;" onclick="showSalaryModal()">💼 Adicionar Salário</button>
+        </div>
+    </div>
+
+    <!-- Modal Despesa -->
+    <div id="add-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>📝 Nova Despesa</h2>
+            <div class="form-group">
+                <label>Data</label>
+                <input type="date" id="expense-date" required>
+            </div>
+            <div class="form-group">
+                <label>Categoria</label>
+                <select id="expense-category" required>
+                    <option value="Alimentação">🍔 Alimentação</option>
+                    <option value="Transporte">🚗 Transporte</option>
+                    <option value="Moradia">🏠 Moradia</option>
+                    <option value="Lazer">🎮 Lazer</option>
+                    <option value="Saúde">🏥 Saúde</option>
+                    <option value="Educação">📚 Educação</option>
+                    <option value="Pets">🐾 Pets</option>
+                    <option value="Assinaturas">📺 Assinaturas</option>
+                    <option value="Cuidados Pessoais">💅 Cuidados Pessoais</option>
+                    <option value="Viagem">✈️ Viagem</option>
+                    <option value="Impostos">💼 Impostos</option>
+                    <option value="Outros">📦 Outros</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <input type="text" id="expense-desc" placeholder="O que você comprou?" required>
+            </div>
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" id="expense-amount" step="0.01" placeholder="0,00" required>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="expense-installments-check">
+                    Compra parcelada
+                </label>
+            </div>
+            <div class="form-group" id="installments-group" style="display:none;">
+                <label>Número de parcelas</label>
+                <input type="number" id="expense-installments" min="2" max="48" value="2">
+            </div>
+            <div class="form-group">
+                <label>Método de Pagamento</label>
+                <select id="expense-payment" required>
+                    <option value="PIX">💳 PIX</option>
+                    <option value="Débito">💳 Débito</option>
+                    <option value="Crédito">💳 Crédito</option>
+                    <option value="Dinheiro">💵 Dinheiro</option>
+                    <option value="Boleto">📄 Boleto</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" style="flex: 1;" onclick="hideAddModal()">Cancelar</button>
+                <button class="btn btn-success" style="flex: 1;" onclick="saveExpense()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Salário -->
+    <div id="salary-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>💼 Salário Base Mensal</h2>
+            <div class="form-group">
+                <label>Descrição</label>
+                <input type="text" id="salary-desc" placeholder="Salário empresa X">
+            </div>
+            <div class="form-group">
+                <label>Valor (R$)</label>
+                <input type="number" id="salary-amount" step="0.01" placeholder="0,00" required>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" style="flex: 1;" onclick="hideSalaryModal()">Cancelar</button>
+                <button class="btn btn-success" style="flex: 1;" onclick="saveSalary()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        let salaries = JSON.parse(localStorage.getItem('salaries')) || [];
+        let baseSalary = parseFloat(localStorage.getItem('baseSalary') || '0');
+        let startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        let endDate = new Date();
+
+        let categoryChart = null;
+        let monthlyChart = null;
+
+        const installmentsCheck = document.getElementById('expense-installments-check');
+        const installmentsGroup = document.getElementById('installments-group');
+        installmentsCheck.addEventListener('change', () => {
+            installmentsGroup.style.display = installmentsCheck.checked ? 'block' : 'none';
+        });
+
+        function saveExpenses() {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        function saveSalaries() {
+            localStorage.setItem('salaries', JSON.stringify(salaries));
+        }
+
+        function selectTab(tab) {
+            const tabDespesas = document.getElementById('tab-despesas');
+            const tabSalarios = document.getElementById('tab-salarios');
+            const expensesList = document.getElementById('expenses-list');
+            const salariesList = document.getElementById('salaries-list');
+            const chartsArea = document.getElementById('charts-area');
+
+            if (tab === 'despesas') {
+                tabDespesas.style.background = '#f3f4f6';
+                tabDespesas.style.color = '#111827';
+                tabSalarios.style.background = '#ffffff';
+                tabSalarios.style.color = '#6b7280';
+                expensesList.style.display = 'block';
+                salariesList.style.display = 'none';
+                chartsArea.style.display = 'block';
+            } else {
+                tabDespesas.style.background = '#ffffff';
+                tabDespesas.style.color = '#6b7280';
+                tabSalarios.style.background = '#f3f4f6';
+                tabSalarios.style.color = '#111827';
+                expensesList.style.display = 'none';
+                salariesList.style.display = 'block';
+                chartsArea.style.display = 'none';
+            }
+        }
+
+        function renderExpenses(filteredExpenses) {
+            const list = document.getElementById('expenses-list');
+            const totalEl = document.getElementById('total-amount');
+            const countEl = document.getElementById('transaction-count');
+
+            if (filteredExpenses.length === 0) {
+                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #6b7280;">Nenhuma despesa encontrada<br>Use os filtros ou adicione uma nova despesa!</div>';
+            } else {
+                list.innerHTML = filteredExpenses.map(exp => `
+                    <div class="expense-item">
+                        <div class="expense-info">
+                            <div class="expense-category">${exp.category}</div>
+                            <div class="expense-desc">${exp.description}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="expense-amount">R$ ${exp.amount.toFixed(2).replace('.', ',')}</div>
+                            <div style="font-size: 0.8em; color: #6b7280;">${exp.paymentMethod}</div>
+                            <div style="font-size: 0.7em; color: #9ca3af;">${new Date(exp.date).toLocaleDateString('pt-BR')}</div>
+                            <button onclick="deleteExpense(${exp.id})" style="margin-top:6px; padding:4px 8px; font-size:11px; border-radius:6px; border:none; background:#ef4444; color:white;">Excluir</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+            totalEl.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+            countEl.textContent = `${filteredExpenses.length} transação${filteredExpenses.length !== 1 ? 'ões' : ''}`;
+
+            const salaryInfoEl = document.getElementById('salary-info');
+            const balanceInfoEl = document.getElementById('balance-info');
+
+            if (baseSalary) {
+                const saldo = baseSalary - total;
+                salaryInfoEl.textContent = `Salário do período: R$ ${baseSalary.toFixed(2).replace('.', ',')}`;
+                balanceInfoEl.textContent = `Saldo disponível: R$ ${saldo.toFixed(2).replace('.', ',')}`;
+                balanceInfoEl.style.color = saldo >= 0 ? '#16a34a' : '#ef4444';
+            } else {
+                salaryInfoEl.textContent = 'Cadastre seu salário para ver o saldo.';
+                balanceInfoEl.textContent = '';
+            }
+
+            updateCharts(filteredExpenses);
+        }
+
+        function renderSalaries() {
+            const list = document.getElementById('salaries-list');
+            if (!baseSalary) {
+                list.innerHTML = '<div style="padding: 40px; text-align: center; color: #6b7280;">Nenhum salário cadastrado<br>Adicione seu salário!</div>';
+                return;
+            }
+            list.innerHTML = `
+                <div class="expense-item">
+                    <div class="expense-info">
+                        <div class="expense-category">Salário</div>
+                        <div class="expense-desc">Salário base mensal</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="expense-amount" style="color:#10b981;">R$ ${baseSalary.toFixed(2).replace('.', ',')}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function filterExpenses() {
+            startDate = new Date(document.getElementById('start-date').value || startDate.toISOString().split('T')[0]);
+            endDate = new Date(document.getElementById('end-date').value || endDate.toISOString().split('T')[0]);
+
+            const filtered = expenses.filter(exp => {
+                const expDate = new Date(exp.date);
+                return expDate >= startDate && expDate <= endDate;
+            });
+
+            document.getElementById('period-display').textContent =
+                `${startDate.toLocaleDateString('pt-BR')} - ${endDate.toLocaleDateString('pt-BR')}`;
+
+            renderExpenses(filtered);
+        }
+
+        function showAddModal() {
+            document.getElementById('add-modal').style.display = 'flex';
+            document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+        }
+
+        function hideAddModal() {
+            document.getElementById('add-modal').style.display = 'none';
+        }
+
+        function showSalaryModal() {
+            document.getElementById('salary-modal').style.display = 'flex';
+            document.getElementById('salary-amount').value = baseSalary ? baseSalary : '';
+        }
+
+        function hideSalaryModal() {
+            document.getElementById('salary-modal').style.display = 'none';
+        }
+
+        function saveExpense() {
+            const baseDate = document.getElementById('expense-date').value;
+            const category = document.getElementById('expense-category').value;
+            const description = document.getElementById('expense-desc').value;
+            const amountValue = parseFloat(document.getElementById('expense-amount').value);
+            const paymentMethod = document.getElementById('expense-payment').value;
+            const isInstallment = document.getElementById('expense-installments-check').checked;
+            const installments = parseInt(document.getElementById('expense-installments').value || '1', 10);
+
+            if (!baseDate || !description || !amountValue) return;
+
+            if (isInstallment && installments > 1) {
+                const perInstallment = amountValue / installments;
+                const start = new Date(baseDate);
+                for (let i = 0; i < installments; i++) {
+                    const d = new Date(start);
+                    d.setMonth(d.getMonth() + i);
+                    const expense = {
+                        id: Date.now() + i,
+                        date: d.toISOString().split('T')[0],
+                        category,
+                        description: `${description} (${i + 1}/${installments})`,
+                        amount: perInstallment,
+                        paymentMethod,
+                        installment: true,
+                        totalAmount: amountValue,
+                        installments
+                    };
+                    expenses.unshift(expense);
+                }
+            } else {
+                const expense = {
+                    id: Date.now(),
+                    date: baseDate,
+                    category,
+                    description,
+                    amount: amountValue,
+                    paymentMethod,
+                    installment: false
+                };
+                expenses.unshift(expense);
+            }
+
+            saveExpenses();
+            filterExpenses();
+            hideAddModal();
+        }
+
+        function saveSalary() {
+            const amount = parseFloat(document.getElementById('salary-amount').value);
+            const description = document.getElementById('salary-desc').value || 'Salário base';
+
+            if (!amount) return;
+
+            baseSalary = amount;
+            localStorage.setItem('baseSalary', String(baseSalary));
+
+            salaries = [{
+                id: Date.now(),
+                date: new Date().toISOString().split('T')[0],
+                description,
+                amount: baseSalary
+            }];
+            saveSalaries();
+            renderSalaries();
+            hideSalaryModal();
+            filterExpenses();
+        }
+
+        function deleteExpense(id) {
+            if (!confirm('Excluir este gasto?')) return;
+            expenses = expenses.filter(e => e.id !== id);
+            saveExpenses();
+            filterExpenses();
+        }
+
+        function groupByCategory(expensesArr) {
+            const map = {};
+            expensesArr.forEach(exp => {
+                map[exp.category] = (map[exp.category] || 0) + exp.amount;
+            });
+            return map;
+        }
+
+        function groupByMonth(expensesArr) {
+            const map = {};
+            expensesArr.forEach(exp => {
+                const d = new Date(exp.date);
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                map[key] = (map[key] || 0) + exp.amount;
+            });
+            return map;
+        }
+
+        function updateCharts(filteredExpenses) {
+            const catData = groupByCategory(filteredExpenses);
+            const monthData = groupByMonth(filteredExpenses);
+
+            const catLabels = Object.keys(catData);
+            const catValues = Object.values(catData);
+
+            const monthLabels = Object.keys(monthData).sort();
+            const monthValues = monthLabels.map(k => monthData[k]);
+
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            const monthCtx = document.getElementById('monthlyChart').getContext('2d');
+
+            if (categoryChart) categoryChart.destroy();
+            if (monthlyChart) monthlyChart.destroy();
+
+            if (catLabels.length > 0) {
+                categoryChart = new Chart(catCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: catLabels,
+                        datasets: [{
+                            data: catValues,
+                            backgroundColor: ['#ef4444','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#22c55e','#f97316','#0ea5e9','#a855f7','#eab308','#6b7280']
+                        }]
+                    },
+                    options: {
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+
+            if (monthLabels.length > 0) {
+                monthlyChart = new Chart(monthCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: monthLabels,
+                        datasets: [{
+                            label: 'Gastos por mês',
+                            data: monthValues,
+                            backgroundColor: '#3b82f6'
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true }
+                        }
+                    }
+                });
+            }
+        }
+
+        function exportData() {
+            const filtered = expenses.filter(exp => {
+                const expDate = new Date(exp.date);
+                return expDate >= startDate && expDate <= endDate;
+            });
+
+            const csv = 'Data,Categoria,Descrição,Valor,Método\n' +
+                filtered.map(exp =>
+                    `"${new Date(exp.date).toLocaleDateString('pt-BR')}",` +
+                    `"${exp.category}","${exp.description}",${exp.amount},"${exp.paymentMethod}"`
+                ).join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `gastos_${startDate.toISOString().split('T')[0]}_a_${endDate.toISOString().split('T')[0]}.csv`;
+            a.click();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('start-date').value = startDate.toISOString().split('T')[0];
+            document.getElementById('end-date').value = today;
+
+            filterExpenses();
+            renderSalaries();
+            selectTab('despesas');
+        });
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
